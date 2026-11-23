@@ -10,8 +10,8 @@ driving the ego, and the logged human trajectory, on the same held-out scenes.
 
 Everything is in one notebook, **`csce642_waymax_ppo.ipynb`**, saved with the outputs of
 the full run: data analysis, environment, reward, PPO, the reference controllers, all
-four experiments from the proposal, statistics, failure analysis, stretch goals and the
-written findings (section 14).
+four experiments from the proposal, statistics, failure analysis, stretch goals, a
+follow-up that fixes the main failure, and the written findings (section 15).
 
 ## Notebook contents
 
@@ -29,8 +29,10 @@ written findings (section 14).
 10. Experiment 3 (H3): reward study and stop-and-wait
 11. Experiment 4: failure analysis with rendered episodes
 12. Smoothness
-13. Stretch goals: behaviour cloning, BC → PPO, richer observation, turning scenes
-14. Findings
+13. Stretch goals: behaviour cloning, BC → PPO, richer observation, a policy trained only
+    on intersection scenes (3 seeds each)
+14. Improving the policy: lead-vehicle features, time-to-collision and red-light terms
+15. Findings
 
 ## Running it
 
@@ -49,8 +51,8 @@ jupyter lab csce642_waymax_ppo.ipynb
 
 Every expensive step writes its output to disk and is skipped when it exists, so the
 notebook can be rerun after an interruption. `SMOKE=1` runs a tiny version of every cell
-in a few minutes. The full run took about 4.5 hours on a 2-core CPU (2M environment
-steps per run at about 3,000 steps/s); a GPU is faster.
+in a few minutes. The full run (27 PPO runs of 2M environment steps) took about 8 hours
+on a 2-core CPU; a GPU is much faster.
 
 ## Data
 
@@ -81,6 +83,11 @@ PPO: mean ± sd over 3 seeds; brackets are 95 % bootstrap CIs.
 | PPO progress-focused | 54.2 ± 2.8 | 11.7 ± 0.7 | 13.3 ± 0.3 | 32.1 ± 4.6 |
 | PPO safety-focused | 21.4 ± 1.3 | 4.6 ± 1.7 | 5.2 ± 0.3 | 53.5 ± 3.7 |
 | PPO balanced, trained with IDM | 33.0 ± 2.3 | 6.0 ± 0.3 | 6.7 ± 0.6 | 54.6 ± 3.4 |
+| BC → PPO | 28.4 ± 2.6 | 5.1 ± 0.4 | 8.4 ± 0.6 | 64.8 ± 3.5 |
+| PPO, K=10 + road edges | 34.5 ± 2.6 | 5.9 ± 0.9 | 9.3 ± 0.3 | 56.1 ± 2.8 |
+| PPO trained on intersections | 33.4 ± 1.8 | 10.0 ± 1.1 | 13.2 ± 0.3 | 55.6 ± 2.3 |
+| PPO + lead/TTC/red terms (section 14) | 9.5 ± 2.7 [6.8, 12.4] | 7.8 ± 1.2 | 2.8 ± 0.5 | 81.8 ± 2.8 [78.0, 85.4] |
+| same, lead measured along the route | 11.1 ± 1.0 [8.1, 14.2] | 6.5 ± 0.4 | 3.0 ± 0.3 | 80.7 ± 1.8 [76.9, 84.5] |
 
 - **H1 not supported.** PPO collides more than the hand-designed controller in every
   setting (balanced: 68 scenes where only PPO collides vs 9, McNemar p < 0.001). The gap
@@ -92,8 +99,18 @@ PPO: mean ± sd over 3 seeds; brackets are 95 % bootstrap CIs.
 - **H3 supported.** Collisions fall 54.2 → 28.6 → 21.4 % as the penalty weight goes
   10 → 50 → 200, progress in driving scenes falls 105 → 98 → 73 %, and the safety-focused
   policy stalls in 14.5 % of driving scenes (all three seeds).
+- **Stretch goals.** BC → PPO matches PPO from scratch; the richer observation is worse.
+  Training only on intersection scenes lowers collisions on the 45 held-out intersection
+  scenes (13.3 % vs 18.5 %) but raises off-road exits (11.9 % vs 3.7 %).
+- **Follow-up (section 14).** Adding the gap, closing speed and time to collision to the
+  vehicle or red stop line ahead, plus a time-to-collision and a red-light penalty, cuts
+  collisions from 28.6 % to 9.5 % and raises success from 66.4 % to 81.8 %. On replayed
+  traffic it is no longer distinguishable from the hand-designed controller on
+  collisions (13 vs 13 scenes, p = 1.0), but it still leaves the road more, and under
+  reactive IDM traffic it collides in 21.8 % of scenes against 7.3 %.
 
-Full tables (driving, waiting and turning slices, IDM traffic, stretch goals) are in
+Full tables (driving, waiting, turning and intersection slices, IDM traffic, stretch
+goals, the section 14 policies) are in
 `results/tables.md`; figures are in `figures/`.
 
 ## Layout

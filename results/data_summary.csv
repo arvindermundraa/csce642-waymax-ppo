@@ -3,6 +3,7 @@ scenes,478.0,288.0
 driving scenes (ego moves >= 20 m),266.0,168.0
 waiting scenes (ego moves < 20 m),212.0,120.0
 turning scenes (heading change > 30 deg),64.0,29.0
+intersection scenes (turning or crossing a signal),100.0,45.0
 objects per scene (median),53.0,57.0
 objects per scene (max),128.0,128.0
 vehicles per scene (mean),54.8,54.6
