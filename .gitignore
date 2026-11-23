@@ -8,8 +8,8 @@ __pycache__/
 data/
 *.tfrecord*
 *.pkl
+*.tmp
 
-# training outputs (checkpoints are large); results/ and figures/ are committed
+# trained checkpoints and rendered videos stay local
 runs/*/checkpoint.pkl*
-logs/
 videos/

@@ -1,4 +1,5 @@
-# Waymax itself is installed from GitHub without its pins, see README.
+# Waymax itself is installed from GitHub without its pins (see the first notebook cell
+# or the README).
 jax>=0.4.30
 flax>=0.8
 optax>=0.2
@@ -9,9 +10,8 @@ immutabledict
 tensorflow-cpu>=2.15   # only used to parse the WOMD tfrecords
 numpy
 pandas
+scipy
 matplotlib
 mediapy
-pyyaml
 tabulate
-tqdm
-pytest
+jupyter
