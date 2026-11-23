@@ -1,0 +1,8 @@
+,PPO (balanced),Logged human,IDM (Waymax),PPO (progress),Hand-designed,PPO (safety)
+struck_from_behind,0.8,0.0,2.4,0.6,4.8,0.6
+rear_end,10.5,0.0,3.0,14.3,0.0,3.6
+collision_turning,1.0,0.0,1.2,1.8,0.0,0.6
+collision_other,6.9,0.0,4.8,11.9,1.8,3.6
+offroad_curve,0.4,0.0,1.8,0.0,0.6,0.0
+offroad_straight,3.4,1.2,6.5,6.5,2.4,2.4
+stalled,0.0,0.0,0.0,0.0,0.0,0.0
