@@ -1,0 +1,17 @@
+# Waymax itself is installed from GitHub without its pins, see README.
+jax>=0.4.30
+flax>=0.8
+optax>=0.2
+chex>=0.1.86
+dm-env
+dm-tree
+immutabledict
+tensorflow-cpu>=2.15   # only used to parse the WOMD tfrecords
+numpy
+pandas
+matplotlib
+mediapy
+pyyaml
+tabulate
+tqdm
+pytest

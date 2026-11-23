@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.venv/
+.ipynb_checkpoints/
+.DS_Store
+
+# WOMD data and caches cannot be redistributed
+data/
+*.tfrecord*
+*.pkl
+
+# training outputs (checkpoints are large); results/ and figures/ are committed
+runs/*/checkpoint.pkl*
+logs/
+videos/*.mp4
