@@ -1,0 +1,4 @@
+method,collision % (our IDM),collision % (Waymax IDM),success % (our IDM),success % (Waymax IDM),same collision outcome (% of scenes)
+Logged human,6.6,14.6,92.0,83.7,84.4
+Hand-designed,7.3,13.9,84.4,75.3,86.5
+PPO balanced,27.1,30.9,66.7,61.5,83.0

@@ -1,0 +1,6 @@
+method,seeds,collision %,collision sd,progress % (driving),stalled % (driving),per-seed stalled %
+PPO progress-focused,3,54.2,2.8,105.1,0.0,"[np.float64(0.0), np.float64(0.0), np.float64(0.0)]"
+PPO balanced,3,28.6,1.1,98.3,0.0,"[np.float64(0.0), np.float64(0.0), np.float64(0.0)]"
+PPO safety-focused,3,21.4,1.3,73.1,14.5,"[np.float64(17.3), np.float64(11.9), np.float64(14.3)]"
+Hand-designed,1,7.3,0.0,95.6,0.0,[np.float64(0.0)]
+Logged human,1,0.3,0.0,99.4,0.0,[np.float64(0.0)]

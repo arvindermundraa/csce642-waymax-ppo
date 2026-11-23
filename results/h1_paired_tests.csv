@@ -1,0 +1,5 @@
+comparison,scenes only A collides,scenes only B collides,McNemar p,success diff (pts),95% CI
+PPO balanced vs Hand-designed,68,9,0.0,-19.3,"[-24.3, -14.0]"
+PPO progress-focused vs Hand-designed,139,9,0.0,-53.7,"[-59.5, -47.7]"
+PPO safety-focused vs Hand-designed,45,11,0.0,-32.3,"[-37.8, -27.0]"
+"PPO balanced, trained with IDM vs Hand-designed",72,3,0.0,-31.1,"[-36.6, -25.9]"

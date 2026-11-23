@@ -1,0 +1,8 @@
+method,mean |jerk| (m/s³),mean |Δκ| (1/m per step),return (balanced reward)
+Logged human,1.29,0.0006,66.2
+IDM (Waymax) ego,2.06,0.0029,55.5
+Hand-designed,1.84,0.0003,58.2
+PPO balanced,3.61 ± 0.38,0.0073,43.5
+PPO progress-focused,3.48 ± 0.54,0.0106,16.9
+PPO safety-focused,6.74 ± 1.55,0.0081,30.9
+"PPO balanced, trained with IDM",3.22 ± 0.12,0.0081,34.1

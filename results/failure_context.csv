@@ -1,0 +1,8 @@
+method,collisions,hit a pedestrian/cyclist %,"speed at failure (m/s, median)","gap to nearest object at collision (m, median)",ran red %,failures in waiting scenes %
+Logged human,1,100.0,0.0,3.4,1.4,3.3
+IDM (Waymax) ego,38,2.6,6.7,4.3,5.2,21.7
+Hand-designed,21,0.0,3.0,4.5,2.8,11.7
+PPO balanced,247,5.7,5.2,4.6,10.5,52.2
+PPO progress-focused,468,6.2,10.2,4.4,13.3,93.6
+PPO safety-focused,185,3.8,3.7,4.6,5.2,25.0
+"PPO balanced, trained with IDM",285,5.6,6.7,4.6,6.7,49.7
