@@ -36,15 +36,13 @@ We train a Proximal Policy Optimization (PPO) agent that drives one car in close
 through real traffic scenes from the Waymo Open Motion Dataset, using the Waymax simulator,
 and compare it on 288 held-out scenes with a hand-designed controller (pure pursuit with
 Intelligent Driver Model speed control), Waymax's IDM policy and the logged human driver.
-With the observation and reward from our proposal, PPO follows its route about as far as
-the human did but collides in 28.6\% of scenes against 7.3\% for the controller, mostly
-because it does not learn to wait in queues and at red lights. Policies trained on
-replayed traffic collide less, not more, when the other cars react to them. Larger
+With the observation and reward from our proposal, PPO follows its route in driving scenes about as far as the human did but collides in 28.6\% of scenes against 7.3\% for the controller, mostly
+because it does not learn to wait in queues and at red lights. Policies trained on replayed traffic collide less, not more, when the other cars are our reactive IDM agents. Larger
 penalties trade progress for safety and at the highest setting the agent stalls in
 14.5\% of driving scenes. A follow-up that adds lead-vehicle features and a
 time-to-collision penalty brings collisions down to 9.5\%, statistically
-indistinguishable from the controller on replayed traffic, but the gain does not carry
-over to reactive traffic. We report three seeds per setting, bootstrap confidence
+indistinguishable from the controller on replayed traffic, but most of the gain is lost
+under reactive traffic; training on a mix of both traffic models recovers part of it. We report three seeds per setting, bootstrap confidence
 intervals and paired tests throughout.
 \end{abstract}
 
@@ -241,9 +239,7 @@ $y_\ell$ the lateral offset of that point in the ego frame. Speed follows IDM,
 \dot v=a_{\max}\Big[1-\big(\tfrac{v}{v_0}\big)^4-\big(\tfrac{s^*}{g}\big)^2\Big],\;\;
 s^*=s_0+vT+\tfrac{v\,\Delta v}{2\sqrt{a_{\max}b}},
 \end{equation}
-where $g$ is the gap to the nearest object ahead within $\pm 2$\,m laterally, or to the
-stop line of a red signal on the route, whichever is closer. The desired speed $v_0$ is
-the mean logged speed in the scene plus 1\,m/s.
+where $g$ is the gap to the nearest of the five closest objects that is ahead within $\pm 2$\,m laterally, or to the stop line of a red signal on the route, whichever is closer. The desired speed $v_0$ is the mean logged speed in the scene plus 1\,m/s, clipped to 3 to 15\,m/s.
 \textbf{IDM ego.} Waymax's \texttt{IDMRoutePolicy} controlling the ego along its logged
 path. \textbf{Logged human.} The recorded trajectory replayed through our wrapper, as a
 reference for how the scene was actually driven and as a check of the wrapper itself.
@@ -267,6 +263,7 @@ configuration and three seeds.
 \begin{table}[t]
 \caption{Trained settings (three seeds each, 2M steps).}\label{tab:runs}
 \centering\small
+\setlength{\tabcolsep}{4pt}
 \begin{tabular}{@{}lll@{}}
 \toprule
 Name & Reward & Differs from balanced in \\
@@ -275,10 +272,11 @@ balanced & 50/50 & (main setting) \\
 progress & 10/10 & lower penalties \\
 safety & 200/200 & higher penalties \\
 IDM-trained & 50/50 & reactive traffic in training \\
-BC$\rightarrow$PPO & 50/50 & initialized from behavior cloning \\
+BC$\rightarrow$PPO & 50/50 & starts from behavior cloning \\
 rich obs. & 50/50 & $K=10$ and 16 road-edge points \\
-intersections & 50/50 & trained on 100 intersection scenes \\
+intersections & 50/50 & 100 intersection scenes only \\
 lead/TTC & 50/50 + terms & Section~\ref{sec:improved} \\
+lead/TTC, mixed & 50/50 + terms & plus mixed traffic \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -299,7 +297,7 @@ McNemar's exact test on per-scene collision (for PPO, the majority outcome over 
 and a paired bootstrap on the difference in success rate.
 
 \textbf{Failure types.} Each failure is labeled at the step it happens with simple
-geometric rules: \emph{struck from behind} (the nearest object is behind the ego, which
+geometric rules: \emph{struck from behind} (the nearest object is behind the ego within $\pm 2$\,m laterally, which
 under replay is a recorded car driving into a slower ego), \emph{collision while
 turning} (route or ego curvature above 0.02\,m$^{-1}$), \emph{rear-end} (nearest object
 ahead within $\pm 2$\,m laterally), \emph{other collision}, \emph{off-road on a curve},
@@ -336,6 +334,7 @@ PPO balanced, IDM-trained & $33.0\pm2.3$ [28.1, 38.2] & $6.0\pm0.3$ & $6.7\pm0.6
 \midrule
 PPO + lead/TTC/red terms & $9.5\pm2.7$ [6.8, 12.4] & $7.8\pm1.2$ & $2.8\pm0.5$ & $90.1\pm3.3$ & $81.8\pm2.8$ [78.1, 85.4] \\
 \quad same, route frame & $11.1\pm1.0$ [8.2, 14.1] & $6.5\pm0.4$ & $3.0\pm0.3$ & $87.3\pm1.1$ & $80.7\pm1.8$ [76.9, 84.4] \\
+\quad same, mixed training & $11.3\pm2.6$ [8.6, 14.5] & $7.3\pm1.1$ & $2.5\pm0.3$ & $87.1\pm1.0$ & $78.6\pm1.5$ [74.8, 82.4] \\
 \bottomrule
 \end{tabular}
 \end{table*}
@@ -396,7 +395,7 @@ PPO balanced (IDM-trained) & $33.0\pm2.3$ & $23.8\pm0.4$ \\
 \end{tabular}
 \end{table}
 
-\textbf{H2 does not hold; the effect goes the other way} (Table~\ref{tab:h2}). Under
+\textbf{H2 does not hold; with our IDM agents the effect goes the other way} (Table~\ref{tab:h2}). Under
 reactive traffic the replay-trained balanced policy collides in 26.3\% of scenes instead
 of 28.6\%, and the safety policy in 14.0\% instead of 21.4\%. Reactive cars brake for an
 ego that is slower or closer than the human was, which forgives exactly the mistakes
@@ -410,8 +409,7 @@ al.~\cite{gulino2023waymax} report for DQN.
 Our vectorized IDM agrees with Waymax's \texttt{IDMRoutePolicy} on the per-scene
 collision outcome in 83 to 87\% of scenes for the three methods we checked, but Waymax's
 version produces more collisions for each (14.6\% against 6.6\% for the logged human),
-partly because its cars keep driving straight after their recorded path ends. The
-direction of the H2 result is the same under both.
+partly because its cars keep driving straight after their recorded path ends. That check included one PPO run (balanced, seed 0): it collides in 30.2\% of scenes on replay, 27.1\% under our IDM and 30.9\% under Waymax's. The reversal of H2 therefore holds for our IDM agents and is not reproduced with Waymax's on that run, where reactive traffic makes no clear difference either way.
 
 \subsection{H3: reward study}
 
@@ -426,8 +424,7 @@ and two references (mean $\pm$ sd over seeds).}\label{fig:reward}
 goes from 10 to 50 to 200, collisions fall from 54.2\% to 28.6\% to 21.4\% and progress
 in driving scenes falls from 105.1\% to 98.3\% to 73.1\% of the logged route.
 Stop-and-wait appears only at the highest penalty: the safety policy stalls in 14.5\% of
-driving scenes (17.3\%, 11.9\% and 14.3\% for the three seeds) and no other setting stalls
-at all. It is also the only original setting that copes with waiting scenes (21.4\%
+driving scenes (17.3\%, 11.9\% and 14.3\% for the three seeds) and neither of the other two reward settings stalls at all. It is also the only original setting that copes with waiting scenes (21.4\%
 collisions against 46.7\% for balanced), so the caution that helps when the human waited
 costs progress when the human drove, and its overall success rate (53.5\%) is below the
 balanced policy's (66.6\%) despite fewer collisions. The control weight also differs
@@ -447,14 +444,11 @@ Fig.~\ref{fig:fail} breaks failures down by type. For the balanced policy the mo
 failure is running into the vehicle ahead (13.2\% of episodes), often by creeping into a
 stopped queue, followed by other collisions (9.1\%), collisions while turning (4.7\%)
 and leaving a straight road (4.2\%). Its median speed at failure is 5.2\,m/s, and 5.7\% of
-its collisions involve a pedestrian or cyclist. The controller's most common collision
-is a replayed car running into it from behind (2.8\%), which is an artifact of log
-replay when the ego is slower than the human was, not a mistake by the controller. The
+its collisions involve a pedestrian or cyclist. The controller's collisions are few; the largest labeled groups are other collisions (3.1\%) and a replayed car running into it from behind (2.8\%). The second is an artifact of log replay when the ego is slower than the human was, not a mistake by the controller. The
 safety policy is struck from behind more often (6.6\%) for the same reason.
 
 PPO also drives less smoothly than every reference: mean absolute jerk of 3.6\,m/s$^3$
-for the balanced policy against 1.8 for the controller and 1.3 for the human, and
-curvature changes about 25 times the controller's, visible in the videos as constant
+for the balanced policy against 1.8 for the controller and 1.3 for the human, and curvature changes about 23 times the controller's, visible in the videos as constant
 small steering corrections.
 
 \textbf{Checking the labels.} We checked the failure types by eye on 70 sampled episodes,
@@ -469,8 +463,7 @@ episodes were still moving slowly at the end, so that count mixes stopping with
 hesitant driving. \emph{Off-road on a curve} (1/10) turned out to be mostly something
 else: the progress policy driving past the end of the logged path, where the route is a
 straight 30\,m extension that need not stay on the road. Table~\ref{tab:offroad} splits
-off-road events accordingly. Every method, the logged human included, starts outside
-the mapped road in 1.4\% of scenes, and within the logged path the rates are low and
+off-road events accordingly. Every method in the table, the logged human included, starts outside the mapped road in 1.4\% of scenes, and within the logged path the rates are low and
 close together. We kept the classifier as it was and report these error rates with it;
 the hypothesis tests do not use the failure types.
 
@@ -527,7 +520,7 @@ against 76.3\%). Over all scenes they are worse. A fifth of the training set is 
 enough to learn the slice well.
 
 None of the stretch policies shows stop-and-wait (stalled in at most 1\% of driving
-scenes; 2.4\% for behavior cloning). Under reactive traffic their order is unchanged:
+scenes; 2.4\% for behavior cloning). Under reactive traffic their ranking by success rate is unchanged, and their collision rates are
 $27.7\pm1.9$\% collisions for BC$\rightarrow$PPO, $28.7\pm4.0$\% for the richer observation
 and $32.1\pm0.7$\% for the intersection-trained policy, against 26.3\% for balanced.
 
@@ -564,22 +557,46 @@ with lead-vehicle terms (middle) and the hand-designed controller (bottom). The 
 blue.}\label{fig:frames}
 \end{figure}
 
-Before we had that breakdown, the extra off-road exits looked like a loophole. The first
-version measured ``ahead'' in
-the ego's own frame, so steering out of the lane makes a stopped car leave the 2\,m band
-and removes the penalty. A second version measures gap and closing speed along the route.
+Before we had that breakdown we suspected a loophole. The first version measured ``ahead'' in the ego's own frame, so steering out of the lane would make a stopped car leave the 2\,m band and remove the penalty. A second version therefore measures gap and closing speed along the route.
 It lowers off-road exits (6.5\%, with overrun down from 4.7\% to 2.7\%) but raises
 collisions slightly (11.1\%), and the two
 versions are not significantly different (13 against 7 scenes, $p=0.26$).
 
-Two caveats. First, the gain does not carry over to reactive traffic: under IDM the two
-versions collide in 21.8\% and 19.7\% of scenes, only modestly below the balanced policy
-(26.3\%) and far above the controller (7.3\%), with most of the extra collisions being
-rear-ends in waiting scenes. We have not isolated the cause; one candidate is that our
-IDM agents restart stopped cars toward their highest logged speed, a pattern the policy
-never saw in training. Second, these changes were designed after looking at failures on
-the held-out scenes, so their numbers are a second look at the same scenes and not a
-fresh test. We keep them apart from the hypothesis tests for that reason.
+\textbf{Reactive traffic.} The gain does not carry over to reactive traffic
+(Table~\ref{tab:mixed}): under IDM the two versions collide in 21.8\% and 19.7\% of scenes,
+only modestly below the balanced policy (26.3\%) and far above the controller (7.3\%),
+with most of the extra collisions in waiting scenes. One candidate cause is that our IDM
+agents restart stopped cars toward their highest logged speed, a pattern the policy
+never saw in training. To test that, a third version trains the first one on
+\emph{mixed traffic}: each training episode is replayed or reactive with equal
+probability, decided at reset. Under IDM its collisions fall to $17.0\pm0.5$\% and success
+rises to $71.8\pm0.7$\% (paired: the replay-trained version collides alone in 18 scenes and the mixed-traffic version alone in 5, $p=0.011$; success $+3.4$ points, CI $[0.3, 6.6]$), with most
+of the gain in waiting scenes (31.4\% to 23.3\% collisions). On replayed traffic it gives
+a little back: $11.3\pm2.6$\% collisions and $78.6\pm1.5$\% success (12 against 4 scenes,
+$p=0.08$; success $-3.2$ points, CI $[-5.9,-0.5]$). Seeing reactive cars in training buys
+robustness at a small cost on recorded traffic, the same direction as the H2 result, and it narrows the gap without closing it: under IDM the policy still collides alone in 34 scenes and the controller alone in 11.
+
+\begin{table}[t]
+\caption{The lead/TTC policies under both traffic models (all 288 scenes).}\label{tab:mixed}
+\centering\small
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+ & \multicolumn{2}{c}{Replay eval} & \multicolumn{2}{c}{IDM eval} \\
+Method & Coll.\,\% & Succ.\,\% & Coll.\,\% & Succ.\,\% \\
+\midrule
+Hand-designed & \pp7.3 & 85.8 & \pp7.3 & 84.4 \\
+PPO balanced & 28.6 & 66.6 & 26.3 & 67.5 \\
+PPO + lead/TTC & \pp9.5 & 81.8 & 21.8 & 68.4 \\
+\quad route frame & 11.1 & 80.7 & 19.7 & 70.3 \\
+\quad mixed training & 11.3 & 78.6 & 17.0 & 71.8 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Caveat.} These changes were designed after looking at failures on the held-out
+scenes, and the mixed-traffic version after seeing the reactive-traffic result, so their
+numbers are repeated looks at the same scenes and not a fresh test. We keep them apart
+from the hypothesis tests for that reason.
 
 \section{Discussion}
 
@@ -600,17 +617,34 @@ several corrections that were each a response to the agent exploiting it (drivin
 faster than the human, creeping into queues, running on past where the human stopped), which is
 the reward design problem in practice: the agent optimizes the reward we wrote, not the
 behavior we meant. The learned policies are also
-jerky, and even the improved one is not robust to a change in how other cars behave.
+jerky, and even the improved ones are much less robust than the controller to a change
+in how other cars behave.
 With hindsight H1 was optimistic. A controller that encodes the two rules that matter
 (follow the path, keep a gap) is a strong baseline, and RL had to rediscover those rules
 from a sparse penalty.
+
+\textbf{Relation to the course material.} Several ideas from the course showed up
+concretely. The problem is a partially observable MDP that we treat as an MDP by
+choosing the observation, and the largest single improvement came from changing that
+observation, not the algorithm~\cite{sutton2018rl}. The policy-gradient
+theorem and the baseline are what PPO builds on~\cite{williams1992reinforce}, and the
+GAE parameter $\lambda$ is the bias--variance trade-off between temporal-difference and
+Monte Carlo targets~\cite{schulman2016gae}. Exploration here comes only from the
+policy's own noise, and its scale decided whether learning started at all
+(Section~\ref{sec:hyper}). On-policy learning made the sample cost visible: every change
+to the reward meant another 2M steps. The reward hypothesis was the hardest part in
+practice, because a scalar that summarizes ``drive safely and make progress'' is easy to
+write and easy to exploit~\cite{ng1999shaping}. Finally, the behavior-cloning result is
+the distribution-shift argument for learning in closed loop~\cite{ross2011dagger}, and
+evaluating on held-out scenes with several seeds is what separates a policy that
+generalizes from one that fits its training scenes or its seed~\cite{henderson2018matters}.
 
 \textbf{What the traffic model does to the conclusions.} H2 taught us that a lower
 collision rate under reactive traffic says as much about how forgiving the traffic
 model is as about the policy. Neither traffic model is right: replayed cars drive into a
 slow ego, and IDM cars never change lanes or yield at crossings.
 
-\textbf{Limitations.} One shard per split and 2M steps per run. The hand-designed
+\textbf{Limitations.} We used one shard per split and 2M steps per run. The reversal of H2 was measured with our own IDM agents and did not reproduce on the one run we checked with Waymax's. The hand-designed
 controller's desired speed and the policy's progress feature both use the length of the
 logged trajectory, which a deployed planner would not have. Red-light attribution is a
 geometric heuristic, and the failure types were right in about two thirds of the
@@ -646,6 +680,7 @@ Progress cap & 2\,m & changed twice \\
 Objects per scene & 64 & changed once \\
 Penalties $w_c{=}w_o$ & 10, 50, 200 & chosen to differ clearly \\
 TTC limit, $w_\text{ttc}$, $w_\text{red}$ & 2\,s, 2, 50 & first value tried \\
+Mixed-traffic share & 0.5 & first value tried \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -659,8 +694,7 @@ than the human and collided more. A cap 5\,m ahead of the logged car still let i
 into stopped queues. We settled on 2\,m, the third value.
 \textbf{Objects per scene.} Waymax's loader keeps the first $N$ objects in file order.
 With $N=32$ that left out about five of the roughly 19 objects that pass within 30\,m of
-the ego; we load all 128 and keep the 64 closest to the ego's path, which leaves out 0.3
-on average.
+the ego; we load all 128 and keep the 64 closest to the ego's path, which leaves out 0.3 on average in the held-out scenes.
 \textbf{Reward presets.} The three presets were chosen in advance as clearly different
 settings, as the proposal said, and were not tuned. The terms in
 Section~\ref{sec:improved} were set once.
@@ -673,8 +707,7 @@ per-scene results, summary tables, training logs and figures are tracked alongsi
 \textbf{Used from others.} The Waymax simulator~\cite{gulino2023waymax}, including its
 data loader, bicycle and state dynamics, overlap and off-road metrics, inverse dynamics
 and \texttt{IDMRoutePolicy}; the WOMD scenes~\cite{ettinger2021womd}; and JAX, Flax and
-Optax. Our PPO follows the structure and default hyperparameters of CleanRL's
-\texttt{ppo\_continuous\_action.py}~\cite{huang2022cleanrl} but is written by us in JAX;
+Optax. Our PPO follows the structure of CleanRL's \texttt{ppo\_continuous\_action.py}~\cite{huang2022cleanrl} and takes from it the hyperparameters marked as such in Table~\ref{tab:hyper}, but is written by us in JAX;
 no CleanRL code is copied. IDM~\cite{treiber2000idm} and pure
 pursuit~\cite{coulter1992purepursuit} are published models that we implemented.
 
@@ -688,17 +721,16 @@ Dataset License Agreement for Non-Commercial Use.
 
 \section{Conclusion}
 
-In real WOMD traffic a compact PPO policy learns to drive along its route about as far
-as the human did, but with the observation and reward we proposed it is clearly less
+In real WOMD traffic a compact PPO policy learns to drive along its route, in driving scenes about as far as the human did, but with the observation and reward we proposed it is clearly less
 safe than pure pursuit with IDM speed control, mostly because it does not learn when to
 wait. Larger penalties reduce collisions at the cost of progress and eventually produce
-the stop-and-wait behavior we anticipated. Switching to reactive traffic makes
-replay-trained policies look safer, not worse. Giving the policy an explicit lead-vehicle
+the stop-and-wait behavior we anticipated. Switching to our reactive traffic makes replay-trained policies look safer, not worse. Giving the policy an explicit lead-vehicle
 signal and a time-to-collision term closes the collision gap to the controller on
-replayed traffic but not under reactive traffic, so the remaining difference between
+replayed traffic but not under reactive traffic; training on mixed traffic narrows that
+gap (21.8\% to 17.0\% collisions) without closing it. The remaining difference between
 learned and hand-designed driving here is robustness, not average-case safety. If we
-continued, we would train with a mix of traffic models, evaluate the follow-up on fresh
-scenes, and replace the five-nearest-objects input with an encoder over all nearby
+continued, we would evaluate the follow-up on fresh scenes, train on more than one shard,
+and replace the five-nearest-objects input with an encoder over all nearby
 objects.
 
 \bibliographystyle{IEEEtran}
