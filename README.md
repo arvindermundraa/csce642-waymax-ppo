@@ -36,7 +36,8 @@ follow-up that fixes the main failure, and the written findings (section 15).
 12. Smoothness
 13. Stretch goals: behaviour cloning, BC → PPO, richer observation, a policy trained only
     on intersection scenes (3 seeds each)
-14. Improving the policy: lead-vehicle features, time-to-collision and red-light terms
+14. Improving the policy: lead-vehicle features, time-to-collision and red-light terms,
+    and training on mixed traffic
 15. Findings
 
 ## Running it
@@ -60,8 +61,9 @@ on the `PATH`.
 Every expensive step writes its output to disk and is skipped when it exists, so the
 notebook can be rerun after an interruption. `SMOKE=1 jupyter lab ...` runs a tiny
 version of every cell in about three minutes and writes its outputs under `smoke/`, so
-it does not touch the real results. The full run (27 PPO runs of 2M environment steps)
-took about 8 hours on a 2-core CPU; a GPU is much faster. With the checkpoints in place,
+it does not touch the real results. The original full run (27 PPO runs of 2M environment steps)
+took about 8 hours on a 2-core CPU; the three mixed-traffic runs added later took about
+3 minutes each on a 10-core machine. With the checkpoints in place,
 rerunning the notebook only repeats the evaluation and rendering.
 
 ## Data
@@ -98,13 +100,15 @@ PPO: mean ± sd over 3 seeds; brackets are 95 % bootstrap CIs.
 | PPO trained on intersections | 33.4 ± 1.8 | 10.0 ± 1.1 | 13.2 ± 0.3 | 55.6 ± 2.3 |
 | PPO + lead/TTC/red terms (section 14) | 9.5 ± 2.7 [6.8, 12.4] | 7.8 ± 1.2 | 2.8 ± 0.5 | 81.8 ± 2.8 [78.1, 85.4] |
 | same, lead measured along the route | 11.1 ± 1.0 [8.2, 14.1] | 6.5 ± 0.4 | 3.0 ± 0.3 | 80.7 ± 1.8 [76.9, 84.4] |
+| same, trained on mixed traffic | 11.3 ± 2.6 [8.6, 14.5] | 7.3 ± 1.1 | 2.5 ± 0.3 | 78.6 ± 1.5 [74.8, 82.4] |
 
 - **H1 not supported.** PPO collides more than the hand-designed controller in every
-  setting (balanced: 68 scenes where only PPO collides vs 9, McNemar p < 0.001). The gap
+  original setting (balanced: 68 scenes where only PPO collides vs 9, McNemar p < 0.001). The gap
   is mostly in waiting scenes (46.7 % vs 6.7 % collisions): PPO does not learn to wait.
   In driving scenes it is closer (15.7 % vs 7.7 %, progress 98 % vs 96 %).
 - **H2 reversed.** Replay-trained policies collide *less* with reactive IDM traffic
-  (balanced 28.6 → 26.3 %, safety 21.4 → 14.0 %), as in the Waymax paper's DQN ablation;
+  (balanced 28.6 → 26.3 %, safety 21.4 → 14.0 %), as in the Waymax paper's DQN ablation. This is with our own IDM agents; with
+  Waymax's `IDMRoutePolicy` the one run we checked shows no clear change (30.9 % vs 30.2 %);
   IDM-trained policies do worse on replayed traffic (33.0 %).
 - **H3 supported.** Collisions fall 54.2 → 28.6 → 21.4 % as the penalty weight goes
   10 → 50 → 200, progress in driving scenes falls 105 → 98 → 73 %, and the safety-focused
@@ -117,7 +121,9 @@ PPO: mean ± sd over 3 seeds; brackets are 95 % bootstrap CIs.
   collisions from 28.6 % to 9.5 % and raises success from 66.6 % to 81.8 %. On replayed
   traffic it is no longer distinguishable from the hand-designed controller on
   collisions (13 vs 13 scenes, p = 1.0), but it still leaves the road more, and under
-  reactive IDM traffic it collides in 21.8 % of scenes against 7.3 %.
+  reactive IDM traffic it collides in 21.8 % of scenes against 7.3 %. Training the same
+  policy on a mix of replayed and reactive episodes lowers that to 17.0 ± 0.5 % (18 vs 5
+  scenes, p = 0.011) at a small cost on replayed traffic (11.3 % collisions).
 - **Checks on the analysis.** We compared the failure labels with what happened in 70
   rendered episodes and agreed in 44: *struck from behind*, *rear-end* and *off-road on
   a straight* are reliable, *collision while turning* and *off-road on a curve* are not
