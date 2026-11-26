@@ -1,0 +1,71 @@
+method,run,scene,label,agrees,note
+ppo,balanced_s0,20,collision_other,yes,
+ppo,balanced_s0,190,collision_other,no,rear-end: runs into the car directly ahead in its lane
+ppo,balanced_s0,256,collision_other,yes,
+ppo,progress_s0,97,collision_other,no,rear-end: runs into the car directly ahead in its lane
+ppo,progress_s0,120,collision_other,no,rear-end: runs into the car directly ahead in its lane
+ppo,progress_s0,184,collision_other,yes,
+ppo,progress_s0,201,collision_other,yes,
+ppo,progress_s0,207,collision_other,yes,
+pure_pursuit,pure_pursuit,166,collision_other,yes,
+ppo,safety_s0,153,collision_other,yes,
+ppo,progress_s0,64,collision_turning,no,"straight road, runs into the car ahead (rear-end)"
+ppo,progress_s0,84,collision_turning,no,going straight through an intersection
+ppo,progress_s0,87,collision_turning,no,"straight road, runs into the car ahead (rear-end)"
+ppo,progress_s0,192,collision_turning,no,"straight road, runs into the car ahead (rear-end)"
+ppo,progress_s0,211,collision_turning,no,"going straight, hits a vehicle crossing the intersection"
+ppo,progress_s0,239,collision_turning,no,"straight road, runs into the car ahead (rear-end)"
+ppo,progress_s0,287,collision_turning,no,"straight road, runs into the queue ahead (rear-end)"
+ppo,safety_s0,184,collision_turning,yes,
+ppo,safety_s0,208,collision_turning,yes,
+ppo,safety_s0,265,collision_turning,yes,
+ppo,progress_s0,23,offroad_curve,no,"past the end of the route, no curve"
+ppo,progress_s0,102,offroad_curve,no,"past the end of the route, no curve"
+ppo,progress_s0,136,offroad_curve,no,"past the end of the route, no curve"
+ppo,progress_s0,172,offroad_curve,no,"past the end of the route, no curve"
+ppo,progress_s0,215,offroad_curve,no,"past the end of the route, no curve"
+ppo,progress_s0,216,offroad_curve,no,"past the end of the route, no curve"
+ppo,progress_s0,222,offroad_curve,no,"past the end of the route, no curve"
+ppo,progress_s0,238,offroad_curve,no,"past the end of the route, no curve"
+ppo,safety_s0,15,offroad_curve,yes,
+ppo,safety_s0,29,offroad_curve,no,"straight road, the ego swerves off"
+ppo,balanced_s0,34,offroad_straight,yes,
+ppo,balanced_s0,280,offroad_straight,yes,off-road at the first step (start position)
+ppo,progress_s0,135,offroad_straight,yes,
+ppo,progress_s0,226,offroad_straight,yes,
+pure_pursuit,pure_pursuit,227,offroad_straight,no,at the start of a curve
+pure_pursuit,pure_pursuit,280,offroad_straight,yes,off-road at the first step (start position)
+ppo,safety_s0,40,offroad_straight,yes,
+ppo,safety_s0,55,offroad_straight,yes,"off-road at the first step (parked, start position)"
+ppo,safety_s0,58,offroad_straight,yes,
+ppo,safety_s0,206,offroad_straight,yes,
+ppo,balanced_s0,49,rear_end,yes,
+ppo,balanced_s0,67,rear_end,yes,
+ppo,progress_s0,61,rear_end,yes,
+ppo,progress_s0,111,rear_end,no,hits a vehicle crossing the intersection
+ppo,progress_s0,139,rear_end,no,hits a turning vehicle crossing its path
+ppo,progress_s0,159,rear_end,yes,
+ppo,progress_s0,177,rear_end,yes,
+ppo,progress_s0,236,rear_end,yes,
+ppo,progress_s0,247,rear_end,yes,
+ppo,safety_s0,179,rear_end,yes,
+ppo,safety_s0,44,stalled,no,"still moving at 5.5 m/s at the end: slow, not stopped"
+ppo,safety_s0,94,stalled,yes,
+ppo,safety_s0,166,stalled,yes,
+ppo,safety_s0,172,stalled,yes,
+ppo,safety_s0,173,stalled,no,"still moving at 4.3 m/s at the end: slow, not stopped"
+ppo,safety_s0,197,stalled,no,"still moving at 9.3 m/s at the end: late start, not stopped"
+ppo,safety_s0,211,stalled,yes,
+ppo,safety_s0,234,stalled,yes,
+ppo,safety_s0,263,stalled,yes,
+ppo,safety_s0,282,stalled,no,"still moving at 4.1 m/s at the end: slow, not stopped"
+ppo,progress_s0,81,struck_from_behind,yes,
+ppo,progress_s0,128,struck_from_behind,yes,
+ppo,progress_s0,138,struck_from_behind,yes,
+pure_pursuit,pure_pursuit,28,struck_from_behind,yes,
+pure_pursuit,pure_pursuit,81,struck_from_behind,yes,
+ppo,safety_s0,113,struck_from_behind,yes,
+ppo,safety_s0,135,struck_from_behind,yes,
+ppo,safety_s0,169,struck_from_behind,yes,
+ppo,safety_s0,213,struck_from_behind,yes,
+ppo,safety_s0,235,struck_from_behind,yes,

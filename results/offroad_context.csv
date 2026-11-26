@@ -1,0 +1,8 @@
+method,off-road %,at the start %,past the logged path %,within the logged path %
+Logged human,1.7,1.4,0.0,0.3
+IDM (Waymax) ego,8.3,1.4,6.6,0.3
+Hand-designed,3.8,1.4,1.4,1.0
+PPO balanced,4.2,1.4,1.5,1.3
+PPO progress-focused,11.7,1.4,8.4,1.9
+PPO safety-focused,4.6,1.4,1.0,2.2
+"PPO balanced, trained with IDM",6.0,1.4,1.4,3.2

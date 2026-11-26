@@ -13,3 +13,15 @@ data/
 # trained checkpoints and rendered videos stay local
 runs/*/checkpoint.pkl*
 videos/
+
+# output of a SMOKE=1 run
+smoke/
+
+# LaTeX build files
+report/*.aux
+report/*.bbl
+report/*.blg
+report/*.fdb_latexmk
+report/*.fls
+report/*.log
+report/*.out
