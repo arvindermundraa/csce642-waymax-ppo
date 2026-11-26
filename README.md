@@ -8,6 +8,10 @@ from the Waymo Open Motion Dataset (WOMD) with the Waymax simulator, and compare
 a hand-designed controller (pure pursuit with IDM speed control), Waymax's IDM policy
 driving the ego, and the logged human trajectory, on the same held-out scenes.
 
+- Code: https://github.com/arvindermundraa/csce642-waymax-ppo
+- Video (5 min): VIDEO-URL-TO-BE-ADDED
+- Report: [`report/report.pdf`](report/report.pdf)
+
 Everything is in one notebook, **`csce642_waymax_ppo.ipynb`**, saved with the outputs of
 the full run: data analysis, environment, reward, PPO, the reference controllers, all
 four experiments from the proposal, statistics, failure analysis, stretch goals, a
@@ -27,7 +31,8 @@ follow-up that fixes the main failure, and the written findings (section 15).
 9. Experiment 2 (H2): replayed vs reactive traffic, and a check of our IDM agents
    against Waymax's `IDMRoutePolicy`
 10. Experiment 3 (H3): reward study and stop-and-wait
-11. Experiment 4: failure analysis with rendered episodes
+11. Experiment 4: failure analysis with rendered episodes, and a check of the failure
+    labels by eye
 12. Smoothness
 13. Stretch goals: behaviour cloning, BC → PPO, richer observation, a policy trained only
     on intersection scenes (3 seeds each)
@@ -49,10 +54,15 @@ pip install --no-deps "git+https://github.com/waymo-research/waymax.git@main#egg
 jupyter lab csce642_waymax_ppo.ipynb
 ```
 
+The cells that render episodes write mp4 files through `mediapy`, which needs `ffmpeg`
+on the `PATH`.
+
 Every expensive step writes its output to disk and is skipped when it exists, so the
-notebook can be rerun after an interruption. `SMOKE=1` runs a tiny version of every cell
-in a few minutes. The full run (27 PPO runs of 2M environment steps) took about 8 hours
-on a 2-core CPU; a GPU is much faster.
+notebook can be rerun after an interruption. `SMOKE=1 jupyter lab ...` runs a tiny
+version of every cell in about three minutes and writes its outputs under `smoke/`, so
+it does not touch the real results. The full run (27 PPO runs of 2M environment steps)
+took about 8 hours on a 2-core CPU; a GPU is much faster. With the checkpoints in place,
+rerunning the notebook only repeats the evaluation and rendering.
 
 ## Data
 
@@ -79,15 +89,15 @@ PPO: mean ± sd over 3 seeds; brackets are 95 % bootstrap CIs.
 | Logged human | 0.3 | 1.7 | 1.4 | 97.9 |
 | IDM (Waymax) ego | 13.2 | 8.3 | 5.2 | 77.1 |
 | Hand-designed | 7.3 [4.5, 10.4] | 3.8 | 2.8 | 85.8 [81.6, 89.6] |
-| PPO balanced | 28.6 ± 1.1 [24.2, 33.2] | 4.2 ± 0.3 | 10.5 ± 1.7 | 66.4 ± 1.1 [61.8, 71.1] |
+| PPO balanced | 28.6 ± 1.1 [24.2, 33.1] | 4.2 ± 0.3 | 10.5 ± 1.7 | 66.6 ± 0.9 [61.7, 71.3] |
 | PPO progress-focused | 54.2 ± 2.8 | 11.7 ± 0.7 | 13.3 ± 0.3 | 32.1 ± 4.6 |
 | PPO safety-focused | 21.4 ± 1.3 | 4.6 ± 1.7 | 5.2 ± 0.3 | 53.5 ± 3.7 |
 | PPO balanced, trained with IDM | 33.0 ± 2.3 | 6.0 ± 0.3 | 6.7 ± 0.6 | 54.6 ± 3.4 |
 | BC → PPO | 28.4 ± 2.6 | 5.1 ± 0.4 | 8.4 ± 0.6 | 64.8 ± 3.5 |
-| PPO, K=10 + road edges | 34.5 ± 2.6 | 5.9 ± 0.9 | 9.3 ± 0.3 | 56.1 ± 2.8 |
+| PPO, K=10 + road edges | 34.5 ± 2.6 | 5.9 ± 0.9 | 9.3 ± 0.3 | 56.2 ± 2.8 |
 | PPO trained on intersections | 33.4 ± 1.8 | 10.0 ± 1.1 | 13.2 ± 0.3 | 55.6 ± 2.3 |
-| PPO + lead/TTC/red terms (section 14) | 9.5 ± 2.7 [6.8, 12.4] | 7.8 ± 1.2 | 2.8 ± 0.5 | 81.8 ± 2.8 [78.0, 85.4] |
-| same, lead measured along the route | 11.1 ± 1.0 [8.1, 14.2] | 6.5 ± 0.4 | 3.0 ± 0.3 | 80.7 ± 1.8 [76.9, 84.5] |
+| PPO + lead/TTC/red terms (section 14) | 9.5 ± 2.7 [6.8, 12.4] | 7.8 ± 1.2 | 2.8 ± 0.5 | 81.8 ± 2.8 [78.1, 85.4] |
+| same, lead measured along the route | 11.1 ± 1.0 [8.2, 14.1] | 6.5 ± 0.4 | 3.0 ± 0.3 | 80.7 ± 1.8 [76.9, 84.4] |
 
 - **H1 not supported.** PPO collides more than the hand-designed controller in every
   setting (balanced: 68 scenes where only PPO collides vs 9, McNemar p < 0.001). The gap
@@ -104,14 +114,21 @@ PPO: mean ± sd over 3 seeds; brackets are 95 % bootstrap CIs.
   scenes (13.3 % vs 18.5 %) but raises off-road exits (11.9 % vs 3.7 %).
 - **Follow-up (section 14).** Adding the gap, closing speed and time to collision to the
   vehicle or red stop line ahead, plus a time-to-collision and a red-light penalty, cuts
-  collisions from 28.6 % to 9.5 % and raises success from 66.4 % to 81.8 %. On replayed
+  collisions from 28.6 % to 9.5 % and raises success from 66.6 % to 81.8 %. On replayed
   traffic it is no longer distinguishable from the hand-designed controller on
   collisions (13 vs 13 scenes, p = 1.0), but it still leaves the road more, and under
   reactive IDM traffic it collides in 21.8 % of scenes against 7.3 %.
+- **Checks on the analysis.** We compared the failure labels with what happened in 70
+  rendered episodes and agreed in 44: *struck from behind*, *rear-end* and *off-road on
+  a straight* are reliable, *collision while turning* and *off-road on a curve* are not
+  (`results/classifier_check.csv`). Most off-road events of the faster policies happen
+  after the ego has passed the end of the logged path; within the logged path all
+  methods are between 0.3 % and 3.2 % (`results/offroad_context.csv`).
 
 Full tables (driving, waiting, turning and intersection slices, IDM traffic, stretch
-goals, the section 14 policies) are in
-`results/tables.md`; figures are in `figures/`.
+goals, the section 14 policies) are in `results/tables.md`; figures are in `figures/`.
+The numbers were regenerated from the checkpoints on a second machine; 11 of 15,840
+per-episode outcomes changed through floating-point differences.
 
 ## Layout
 
@@ -121,6 +138,7 @@ results/                   per-scene CSVs for every method and traffic model, su
 figures/                   all plots from the notebook
 runs/<name>/progress.csv   training logs (checkpoints are kept locally, not in git)
 videos/                    rendered episodes (local only)
+report/                    final report (LaTeX sources and PDF)
 ```
 
 ## References
