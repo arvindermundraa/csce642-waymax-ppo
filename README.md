@@ -10,7 +10,6 @@ driving the ego, and the logged human trajectory, on the same held-out scenes.
 
 - Code: https://github.com/arvindermundraa/csce642-waymax-ppo
 - Video (5 min): VIDEO-URL-TO-BE-ADDED
-- Report: [`report/report.pdf`](report/report.pdf)
 
 Everything is in one notebook, **`csce642_waymax_ppo.ipynb`**, saved with the outputs of
 the full run: data analysis, environment, reward, PPO, the reference controllers, all
@@ -144,7 +143,6 @@ results/                   per-scene CSVs for every method and traffic model, su
 figures/                   all plots from the notebook
 runs/<name>/progress.csv   training logs (checkpoints are kept locally, not in git)
 videos/                    rendered episodes (local only)
-report/                    final report (LaTeX sources and PDF)
 ```
 
 ## References
